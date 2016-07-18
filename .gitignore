@@ -1,0 +1,11 @@
+# Any stray object files, just incase 
+**.o
+
+# Our build directory
+build
+
+# Any stray iso's.
+**.iso
+
+# Spacemacs temp files
+**/.#*
