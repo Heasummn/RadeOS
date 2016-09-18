@@ -1,4 +1,5 @@
 global start
+extern longmode_start
 
 %define multiboot_load 0x36d76289
 %define cpuid_longmode_check 0x80000000
@@ -8,12 +9,19 @@ global start
 %define longmode_bit_efer 1 << 8
 %define paging_bit 1 << 31
 
+;; GDT constants
+%define read_write 41
+%define executable 43
+%define descriptor_type 44
+%define present 47
+%define code_seg 53
+
 section 32
 bits 32
 start:
   mov esp, stack_top ; Update the stack pointer
   
-  ; Run checks to ensure we can do what we are doing
+  ; Run checks to ensure we can do what we are doing1
   call multiboot_check
   call cpuid_check
   call longmode_check
@@ -22,7 +30,17 @@ start:
   call setup_page_tables
   call enable_paging
 
-  hlt
+  lgdt [gdt64.pointer]
+  
+  ; Update selectors
+  mov ax, gdt64.data
+  mov ss, ax
+  mov ds, ax
+  mov es, ax
+
+  ; Far jump and start long mode!
+  jmp gdt64.code:longmode_start
+
 
 
 ; Make sure the kernel was loaded by a multiboot compliant bootloader
@@ -88,7 +106,6 @@ longmode_check:
 .No_Longmode:
   mov al, "3"
   jmp error
-
 
 setup_page_tables:
   ; Set first P4 entry to P3 table
@@ -160,6 +177,22 @@ p3_table:
   resb 4096
 p2_table:
   resb 4096
-stack_bottom: ; The stack grows downwardsh, so the bottom is actually at the top
+
+stack_bottom: ; The stack grows downwards, so the bottom is actually at the top
   resb 64
 stack_top:
+
+section .rodata
+gdt64:
+  .empty:
+    dq 0 ; Empty entry
+  .code: equ $ - gdt64
+    ; Code segment
+    dq (1 << descriptor_type) | (1 << present) | (1 << read_write) | (1 << executable) | (1 << code_seg)
+  .data: equ $ - gdt64
+    ; Data segment
+    dq (1 << descriptor_type) | (1 << present) | (1 << read_write)
+  ; Pointer to GDT, fitting the pointer description 
+  .pointer:
+    dw $ - gdt64 - 1
+    dq gdt64
