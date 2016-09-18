@@ -4,13 +4,24 @@ global start
 %define cpuid_longmode_check 0x80000000
 %define longmode_age 0x80000001
 %define longmode_bit 1 << 29
+%define PAE_bit 1 << 5
+%define longmode_bit_efer 1 << 8
+%define paging_bit 1 << 31
 
 section 32
 bits 32
 start:
   mov esp, stack_top ; Update the stack pointer
+  
+  ; Run checks to ensure we can do what we are doing
   call multiboot_check
   call cpuid_check
+  call longmode_check
+
+  ; Enable paging
+  call setup_page_tables
+  call enable_paging
+
   hlt
 
 
@@ -79,6 +90,56 @@ longmode_check:
   jmp error
 
 
+setup_page_tables:
+  ; Set first P4 entry to P3 table
+  mov eax, p3_table
+  or eax, 3 ; 3 == 0b01 | 0b10. Set read and present
+  mov [p4_table], eax
+
+  ; Set first P3 entry to point to P2 table
+  mov eax, p2_table
+  or eax, 3
+  mov [p3_table], eax
+
+  ; TODO: Map each P2 entry to a page
+  ; To do this, we have to loop!
+
+  mov ecx, 0 ; A counter to count how many pages we've seen
+  .map_page_loop:
+    mov eax, 0x200000 ; 2 MiB
+    mul ecx ; Get the current start address of the page
+    or eax, 0b10000011 ; present + write + huge
+    mov [p2_table + (ecx * 8)], eax ; Since each entry is 8 bits, get our current entry
+
+    ; Loop induction stage
+    inc ecx
+    cmp ecx, 512 ; Each page has 512 entries
+    jne .map_page_loop
+
+    ret
+
+enable_paging:
+  mov eax, p4_table
+  mov cr3, eax  ; For some weird reason, we can't load P4 directly to cr3, so we use a temp
+
+  ; Enable PAE
+  mov eax, cr4
+  or eax, PAE_bit
+  mov cr4, eax
+
+  ; set the long mode bit in the EFER MSR (model specific register)
+  mov ecx, 0xC0000080
+  rdmsr
+  or eax, longmode_bit_efer
+  wrmsr
+
+  ; Actually enable paging
+  mov eax, cr0
+  or eax, paging_bit
+  mov cr0, eax
+
+  ret
+
 ; Print a nice red on white ERROR: and it's argument
 ; Uses argument from al
 error:
@@ -92,7 +153,13 @@ error:
   hlt
 
 section .bss
+align 4096
+p4_table:
+  resb 4096
+p3_table:
+  resb 4096
+p2_table:
+  resb 4096
 stack_bottom: ; The stack grows downwardsh, so the bottom is actually at the top
   resb 64
 stack_top:
-
