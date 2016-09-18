@@ -1,11 +1,15 @@
 # Any stray object files, just incase 
 **.o
 
-# Our build directory
+# Our build directories
 build
+target
 
 # Any stray iso's.
 **.iso
 
 # Spacemacs temp files
 **/.#*
+
+# Cargo.lock file from Cargo
+Cargo.lock

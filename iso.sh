@@ -32,7 +32,7 @@ set default=0
 
 menuentry "$NAME" {
 	multiboot2 /boot/$NAME.bin
-  boot
+  	boot
 }
 EOF
 log "Making iso file."

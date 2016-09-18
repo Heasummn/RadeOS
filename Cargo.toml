@@ -1,0 +1,8 @@
+[package]
+name = "rade_os"
+version = "0.1.0"
+authors = ["Heasummn", "Ryan"]
+
+[lib]
+crate-type = ["staticlib"]
+path = "kernel/lib.rs"

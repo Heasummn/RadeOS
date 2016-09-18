@@ -1,10 +1,11 @@
-  global start
+global start
 
-  section 32
-  bits 32
+section 32
+bits 32
 start:
+  mov esp, stack_top ; Update the stack pointer
   ;; We want to print Hello World
-	mov word [0xb8000], 0x0249 ; H
+	mov word [0xb8000], 0x0248 ; H
 	mov word [0xb8002], 0x0265 ; e
   mov word [0xb8004], 0x026c ; l
   mov word [0xb8006], 0x026c ; l
@@ -18,3 +19,9 @@ start:
   mov word [0xb8016], 0x0264 ; d
 	mov word [0xb8018], 0x0221 ; !
   hlt
+
+section .bss
+stack_bottom: ; The stack grows downwardsh, so the bottom is actually at the top
+  resb 64
+stack_top:
+

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 export NAME=RadeOS
-export ARCH=amd64
+export SNAKE_NAME=rade_os
+export ARCH=x86_64
 export CROSS=$HOME/opt/cross
 export PATH=$CROSS/bin:$PATH
 
