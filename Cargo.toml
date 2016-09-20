@@ -6,3 +6,15 @@ authors = ["Heasummn", "Ryan"]
 [lib]
 crate-type = ["staticlib"]
 path = "kernel/lib.rs"
+
+[dependencies]
+rlibc = "0.1.4"
+xargo = "0.1.8"
+
+# The development profile, used for `cargo build`.
+[profile.dev]
+panic = "abort"
+
+# The release profile, used for `cargo build --release`.
+[profile.release]
+panic = "abort"

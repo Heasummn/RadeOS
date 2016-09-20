@@ -7,10 +7,10 @@ ASM_OBJECT 		:= $(patsubst $(ARCH_DIR)/%.s, \
 LD_SCRIPT		:= $(ARCH_DIR)/linker.ld
 
 LD				:= $(ARCH)-elf-ld
-LD_FLAGS		:= -n -T $(LD_SCRIPT) -o $(KERNEL) $(ASM_OBJECT)
-
 TARGET			:= $(ARCH)-unknown-linux-gnu
 RUST_OS 		:= target/$(TARGET)/debug/lib$(SNAKE_NAME).a
+LD_FLAGS		:= -n --gc-sections -T $(LD_SCRIPT) -o $(KERNEL) $(ASM_OBJECT) $(RUST_OS)
+
 
 all: $(KERNEL)
 
@@ -21,7 +21,7 @@ $(KERNEL): cargo $(RUST_OS) $(ASM_OBJECT) $(LD_SCRIPT)
 	@$(LD) $(LD_FLAGS)
 
 cargo:
-	@cargo build --target $(TARGET)
+	@xargo build --target $(TARGET)
 
 $(BUILD_DIR)/%.o: $(ARCH_DIR)/%.s
 	@mkdir -p $(shell dirname $@)  # Make the build dir.
