@@ -33,9 +33,9 @@ start:
   jmp launch_longmode
   
 ; Include the different stages of booting
-%include "kernel/arch/x86_64/boot_checks.s.inc"
-%include "kernel/arch/x86_64/paging.s.inc"
-%include "kernel/arch/x86_64/gdt.s.inc"
+%include "kernel/arch/x86_64/asm/boot_checks.inc"
+%include "kernel/arch/x86_64/asm/paging.inc"
+%include "kernel/arch/x86_64/asm/gdt.inc"
 
 ; Print a nice red on white ERROR: and it's argument
 ; Uses argument from al

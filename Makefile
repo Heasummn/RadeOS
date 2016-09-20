@@ -1,6 +1,6 @@
 ARCH_DIR 		:= $(SRC_DIR)/arch/$(ARCH)
 
-ASM_FILES		:= $(wildcard $(ARCH_DIR)/*.s)
+ASM_FILES		:= $(wildcard $(ARCH_DIR)/asm/*.s)
 ASM_OBJECT 		:= $(patsubst $(ARCH_DIR)/%.s, \
 	$(BUILD_DIR)/%.o, $(ASM_FILES))
 
