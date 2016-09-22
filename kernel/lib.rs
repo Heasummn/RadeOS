@@ -1,26 +1,17 @@
-#![feature(lang_items, const_fn, unique, asm)]
+#![feature(lang_items, const_fn, unique)]
 #![no_std]
 
 extern crate rlibc;
+extern crate spin;
 
 // If we're building for x86_64
-#[cfg(target_arch="x86_64")] #[path="arch/x86_64/mod.rs"]
+#[cfg(target_arch="x86_64")] #[path="arch/x86_64/mod.rs"] #[macro_use]
 mod arch;
-
-use core::ptr::Unique;
-use arch::vga::*;
 
 #[no_mangle]
 pub extern "C" fn rust_main() {    
-    let color = ColorCode::new(Color::Green, Color::Black);
-    let buffer = unsafe { Unique::new(0xb8000 as *mut _) };
-    let mut vga = VGA::new(buffer, color);
-        
-    for byte in "Hello, World!".chars()
-    {
-        vga.write_char(byte as u8);
-    }
-	loop {}
+	print!("Hello, World!");
+    loop {}
 }
 
 #[lang = "eh_personality"] extern "C" fn eh_personality() {}

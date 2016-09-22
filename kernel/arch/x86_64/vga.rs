@@ -1,7 +1,8 @@
 use core::ptr::Unique;
+use spin::Mutex;
+
 const BUFFER_WIDTH: usize =  80;
 const BUFFER_HEIGHT: usize =  25;
-
 
 #[allow(dead_code)]
 #[repr(u8)]
@@ -33,6 +34,8 @@ impl ColorCode {
     }
 }
 
+const DEF_COLOR: ColorCode = ColorCode::new(Color::LightGreen, Color::Black);
+
 #[repr(C)]
 struct VGAChar { 
     text: u8,
@@ -43,22 +46,22 @@ pub struct Buffer {
     chars: [[VGAChar; BUFFER_WIDTH]; BUFFER_HEIGHT]
 }
 
-pub struct VGA {
+pub struct VgaWriter {
     col: usize,
     row: usize,
     buffer: Unique<Buffer>,
     color: ColorCode
 }
 
-impl VGA
+impl VgaWriter 
 {
-    pub fn new(buffer: Unique<Buffer>, color: ColorCode) -> VGA
+    pub fn new(color: ColorCode) -> VgaWriter
     {
-        VGA 
+        VgaWriter 
         {
             col: 0,
             row: 0,
-            buffer: buffer,
+            buffer: unsafe { Unique::new(0xb8000 as *mut _) },
             color: color
         }
     }
@@ -82,6 +85,14 @@ impl VGA
         }
     }
 
+    pub fn write_str(&mut self, string: &str)
+    {
+        for letter in string.bytes()
+        {
+            self.write_char(letter);
+        }
+    }
+
     fn buffer(&mut self) -> &mut Buffer {
         unsafe{ self.buffer.get_mut() }
     }
@@ -89,3 +100,29 @@ impl VGA
     fn new_line(&mut self) { self.row += 1 }
 }
 
+// Make our function formattable
+impl ::core::fmt::Write for VgaWriter {
+    fn write_str(&mut self, s: &str) -> ::core::fmt::Result {
+        self.write_str(s);
+        Ok(())
+    }
+}
+
+
+// Unfortunately, we can't use the VgaWriter::new function here.
+pub static BUFFER: Mutex<VgaWriter> = Mutex::new(VgaWriter {
+        col: 0, 
+        row: 0,
+        buffer: unsafe { Unique::new(0xb8000 as *mut _) },
+        color: DEF_COLOR
+    });
+
+// Prints out the given arguments to the screen.
+macro_rules! print {
+    ($($arg:tt)*) => 
+        ({
+            use core::fmt::Write;
+            let mut b = $crate::arch::vga::BUFFER.lock();
+            b.write_fmt(format_args!($($arg)*)).unwrap();        
+        });
+}
