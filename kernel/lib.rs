@@ -8,10 +8,17 @@ extern crate spin;
 #[cfg(target_arch="x86_64")] #[path="arch/x86_64/mod.rs"] #[macro_use]
 mod arch;
 
+#[macro_use]
+mod logging;
+
 #[no_mangle]
-pub extern "C" fn rust_main() {    
-	print!("Hello, World!");
-    loop {}
+pub extern "C" fn rust_main() {
+    kprintln!("Booting!");
+    
+    arch::vga::init_vga();
+    kinfo!("Initialized VGA");
+
+    kerror!("Oh no, something went wrong! (Not really, we're doing this as a test).");
 }
 
 #[lang = "eh_personality"] extern "C" fn eh_personality() {}
