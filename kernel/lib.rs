@@ -11,6 +11,9 @@ mod arch;
 #[macro_use]
 mod logging;
 
+#[macro_use]
+mod multiboot;
+
 #[no_mangle]
 pub extern "C" fn rust_main() {
     kprintln!("Booting!");
