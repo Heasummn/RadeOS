@@ -19,6 +19,7 @@ extern longmode_start
 section 32
 bits 32
 start:
+  mov edi, ebx
   mov esp, stack_top ; Update the stack pointer
   
   ; Run checks to ensure we can do what we are doing1
@@ -61,4 +62,3 @@ p2_table:
 stack_bottom: ; The stack grows downwards, so the bottom is actually at the top
   resb 4096
 stack_top:
-

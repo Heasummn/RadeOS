@@ -1,5 +1,44 @@
 // This is taken from the multiboot 1.6 specification
 
+/*          Mulitboot Information
+    +-------------------+
+    u32     | total_size        |
+    u32     | reserved          |
+    Followed by Tags            |
+    +-------------------+
+*/
+
+pub unsafe fn load(address: usize) -> &'static MultiBootInfo
+{
+    &*(address as *const MultiBootInfo)
+}
+
+#[repr(C)]
+pub struct MultiBootInfo
+{
+    pub total_size: u32,
+    reserved: u32,
+    tag: Tag // This is our first tag
+}
+
+// TODO: Split this up into a bigger module
+impl MultiBootInfo
+{  
+    pub fn address_start(&self) -> usize 
+    {
+        self as *const _ as usize
+    }
+
+    pub fn address_end(&self) -> usize
+    {
+        self.address_start() + self.total_size as usize
+    }
+
+    pub fn iterator(&self) -> TagIterator
+    {
+        TagIterator { current: &self.tag as *const _ }
+    }
+}
 
 // Each tag consists of a type, and a length
 
@@ -11,14 +50,14 @@
 */
 
 #[repr(C)]
-#[derive(PartialEq, Eq)]
 pub struct Tag 
 {
-    typ: u32, // type is reserved
+    pub typ: u32, // type is reserved TODO: remove public, only for testing
     size: u32 
     // Different fields depending on the type of Tag
 }
 
+/*
 /*           Memory Info
     +-------------------+
     u32     | type = 4          |
@@ -56,7 +95,7 @@ pub struct BIOSBootDevice
     partition: u32,
     sub_partition: u32
 }
-
+*/
 
 pub const END_TAG: Tag = Tag { typ: 0, size: 8 };
 

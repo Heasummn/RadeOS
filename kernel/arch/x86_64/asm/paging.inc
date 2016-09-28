@@ -10,22 +10,20 @@ setup_page_tables:
   or eax, 3
   mov [p3_table], eax
 
-  ; TODO: Map each P2 entry to a page
-  ; To do this, we have to loop!
-
+  ; Map each P2 entry to a page
   mov ecx, 0 ; A counter to count how many pages we've seen
-  .map_page_loop:
-    mov eax, 0x200000 ; 2 MiB
-    mul ecx ; Get the current start address of the page
-    or eax, 0b10000011 ; present + write + huge
-    mov [p2_table + (ecx * 8)], eax ; Since each entry is 8 bits, get our current entry
+.map_page_loop:
+    
+  mov eax, 0x200000  ; 2MiB
+  mul ecx            ; start address of ecx-th page
+  or eax, 0b10000011 ; present + writable + huge
+  mov [p2_table + ecx * 8], eax ; map ecx-th entry
 
-    ; Loop induction stage
-    inc ecx
-    cmp ecx, 512 ; Each page has 512 entries
-    jne .map_page_loop
+  inc ecx            ; increase counter
+  cmp ecx, 512       ; if counter == 512, the whole P2 table is mapped
+  jne .map_page_loop  ; else map the next entry
 
-    ret
+  ret
 
 ; Enable paging, as the name implies
 enable_paging:
